@@ -3,56 +3,50 @@ __author__ = 'Desmond'
 import mysql.connector
 from mysql.connector import errorcode
 
-DB_CONFIG = {
-    'user': 'root',
-    'password': '',
-    'host': 'localhost'
-}
-
-DB_NAME = "tianchi_weibo"
+from sql_config import *
 
 table1 = "weibo_train_data"
 TABLES = {}
 TABLES[table1] = (
-    "CREATE TABLE IF NOT EXISTS `" + table1 + "` ("
-                                              "`uid` char(32) NOT NULL,"
-                                              "`mid` char(32) NOT NULL,"
-                                              "`time` date NOT NULL,"
-                                              "`forward_count` int NOT NULL,"
-                                              "`comment_count` int NOT NULL,"
-                                              "`like_count` int NOT NULL,"
-                                              "`content` text NOT NULL"
-                                              ") ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;"
+    "CREATE TABLE IF NOT EXISTS `{}` ("
+    "`uid` char(32) NOT NULL,"
+    "`mid` char(32) NOT NULL,"
+    "`time` date NOT NULL,"
+    "`forward_count` int NOT NULL,"
+    "`comment_count` int NOT NULL,"
+    "`like_count` int NOT NULL,"
+    "`content` text NOT NULL"
+    ") ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;".format(table1)
 )
 
-add_table1 = ("INSERT INTO  " + table1 +
+add_table1 = ("INSERT INTO `{}` "
               "(uid, mid, time, forward_count, comment_count, like_count, content) "
-              "VALUES (%s, %s, %s, %s, %s, %s, %s)")
+              "VALUES (%s, %s, %s, %s, %s, %s, %s)".format(table1))
 
 table2 = "weibo_predict_data"
 TABLES[table2] = (
-    "CREATE TABLE IF NOT EXISTS `" + table2 + "` ("
-                                              "`uid` char(32) NOT NULL,"
-                                              "`mid` char(32) NOT NULL,"
-                                              "`time` date NOT NULL,"
-                                              "`content` text NOT NULL"
-                                              ") ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;"
+    "CREATE TABLE IF NOT EXISTS `{}` ("
+    "`uid` char(32) NOT NULL,"
+    "`mid` char(32) NOT NULL,"
+    "`time` date NOT NULL,"
+    "`content` text NOT NULL"
+    ") ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;".format(table2)
 )
 
-add_table2 = ("INSERT INTO " + table2 +
+add_table2 = ("INSERT INTO {} "
               "(uid, mid, time, content) "
-              "VALUES (%s, %s, %s, %s)")
+              "VALUES (%s, %s, %s, %s)".format(table2))
 
 CREATE_INDEXS = [
-    "ALTER TABLE `" + table1 + "` ADD INDEX(`uid`);",
-    "ALTER TABLE `" + table1 + "` ADD INDEX(`mid`);",
-    "ALTER TABLE `" + table2 + "` ADD INDEX(`uid`);",
-    "ALTER TABLE `" + table2 + "` ADD INDEX(`mid`);"]
+    "ALTER TABLE `{}` ADD INDEX(`uid`);".format(table1),
+    "ALTER TABLE `{}` ADD INDEX(`time`);".format(table1),
+    "ALTER TABLE `{}` ADD INDEX(`uid`);".format(table2),
+    "ALTER TABLE `{}` ADD INDEX(`time`);".format(table2)]
 
 try:
     cnx = mysql.connector.connect(**DB_CONFIG)
-    cursor = cnx.cursor()
     cnx.database = DB_NAME
+    cursor = cnx.cursor()
 except mysql.connector.Error as err:
     if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
         print("Username or password is wrong")
