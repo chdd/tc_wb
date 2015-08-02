@@ -41,36 +41,20 @@ def get_train_data_features(cur, WeiboData):
                                                     allowPOS=pos)
 
             tags_dict = {}
-            if is_with_weight is True:
-                for tag in tags_idf:
-                    tags_dict[tag[0]] = [tag[1], 0]
-                for tag in tags_text_rank:
-                    if tags_dict.has_key(tag[0]):
-                        tags_dict[tag[0]][1] = tag[1]
-                    else:
-                        tags_dict[tag[0]] = [0, tag[1]]
-                for tag, val in tags_dict.iteritems():
-                    try:
-                        cur.execute(add_ddl, (line[1], line[2], tag, val[0], val[1]))
-                    except mysql.connector.Error as err:
-                        print(err.msg)
-                        print(tag)
-                        break
-            else:
-                for tag in tags_idf:
-                    try:
-                        cur.execute(add_ddl, [line[1], line[2], tag, 0, 1])
-                    except mysql.connector.Error as err:
-                        print(err.msg)
-                        print(tag)
-                        break
-                for tag in tags_text_rank:
-                    try:
-                        cur.execute(add_ddl, [line[1], line[2], tag, 0, 2])
-                    except mysql.connector.Error as err:
-                        print(err.msg)
-                        print(tag)
-                        break
+            for tag in tags_idf:
+                tags_dict[tag[0]] = [tag[1], 0]
+            for tag in tags_text_rank:
+                if tags_dict.has_key(tag[0]):
+                    tags_dict[tag[0]][1] = tag[1]
+                else:
+                    tags_dict[tag[0]] = [0, tag[1]]
+            for tag, val in tags_dict.iteritems():
+                try:
+                    cur.execute(add_ddl, (line[1], line[2], tag, val[0], val[1]))
+                except mysql.connector.Error as err:
+                    print(err.msg)
+                    print(tag)
+                    break
 
             if DEBUG:
                 print(line[-1])
