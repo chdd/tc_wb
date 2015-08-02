@@ -1,17 +1,16 @@
 __author__ = 'Desmond'
 
+import cPickle as Pickle
+
 import jieba
 import jieba.analyse
 import jieba.posseg
-import mysql.connector
-from mysql.connector import errorcode
 
 from weibo_predict_data import WeiboPredictData
 from weibo_train_data import WeiboTrainData
-from sql_config import *
 
 
-def get_train_data_features(cur, WeiboData):
+def get_content_tags(file_name, WeiboData):
     with WeiboData() as weibo_data:
 
         k = 30
@@ -21,6 +20,7 @@ def get_train_data_features(cur, WeiboData):
         cnt = 0
         cnt_up = 0
         DEBUG = False
+        mid_tags_dict = {}
         for line in weibo_data.gen_all():
             cnt += 1
             if cnt >= cnt_up:
@@ -28,7 +28,7 @@ def get_train_data_features(cur, WeiboData):
                 cnt_up += 1000
 
             if DEBUG:
-                if cnt < 0:
+                if cnt < 10:
                     continue
                 if cnt > 20:
                     break
@@ -48,13 +48,7 @@ def get_train_data_features(cur, WeiboData):
                     tags_dict[tag[0]][1] = tag[1]
                 else:
                     tags_dict[tag[0]] = [0, tag[1]]
-            for tag, val in tags_dict.iteritems():
-                try:
-                    cur.execute(add_ddl, (line[1], line[2], tag, val[0], val[1]))
-                except mysql.connector.Error as err:
-                    print(err.msg)
-                    print(tag)
-                    break
+            mid_tags_dict[line[1]] = tags_dict
 
             if DEBUG:
                 print(line[-1])
@@ -68,32 +62,17 @@ def get_train_data_features(cur, WeiboData):
                     print(", ".join(tags_idf))
                     print(", ".join(tags_text_rank))
                 print
+        with open(file_name, 'w') as f:
+            Pickle.dump(mid_tags_dict, f)
 
 
-try:
-    cnx = mysql.connector.connect(**DB_CONFIG)
-    cnx.database = DB_NAME
-    cursor = cnx.cursor()
+get_content_tags("..\\predict_data_tags.pkl", WeiboPredictData)
+get_content_tags("..\\train_data_tags.pkl", WeiboTrainData)
 
-    cursor.execute("DROP TABLE IF EXISTS `features_tags`")
-    cursor.execute("CREATE TABLE `features_tags` ("
-                   "`mid` char(32) NOT NULL,"
-                   "`time` date NOT NULL,"
-                   "`tag` varchar(32) NOT NULL,"
-                   "`confidence1` float NOT NULL,"
-                   "`confidence2` float NOT NULL"
-                   ") ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;")
-    cursor.execute("ALTER TABLE `features_tags` ADD INDEX(`mid`);")
-    cursor.execute("ALTER TABLE `features_tags` ADD INDEX(`time`);")
-
-    add_ddl = ("INSERT INTO `features_tags` "
-               "(mid, time, tag, confidence1, confidence2) "
-               "VALUES (%s, %s, %s, %s, %s)")
-
-    get_train_data_features(cursor, WeiboPredictData)
-    get_train_data_features(cursor, WeiboTrainData)
-
-    cursor.close()
-    cnx.close()
-except mysql.connector.Error as err:
-    print(err.msg)
+# with open("..\\predict_data_tags.pkl", 'r') as f:
+#     tags = Pickle.load(f)
+#     for mid, val in tags.iteritems():
+#         print(mid)
+#         for tag, conf in val.iteritems():
+#             print("%s\t%f\t%f" % (tag, conf[0], conf[1]))
+#         print
