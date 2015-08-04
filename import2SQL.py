@@ -92,8 +92,8 @@ def csv_to_mysql(filename, table_structure):
             print(err.msg)
 
 
-csv_to_mysql('../weibo_predict_data.txt', add_table2)
-csv_to_mysql('../weibo_train_data.txt', add_table1)
+csv_to_mysql('../weibo_predict_data.txt', add_table2)  # 274805
+csv_to_mysql('../weibo_train_data.txt', add_table1)  # 1623522
 csv_to_mysql('../rest.txt', add_table1)
 
 cursor.close()

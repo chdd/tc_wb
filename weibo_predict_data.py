@@ -11,7 +11,7 @@ __metaclass__ = type
 class WeiboPredictData:
     def __init__(self):
         self.table_name = 'weibo_predict_data'
-        self.array_size = 1000
+        self.array_size = 100000
         try:
             self.cnx = mysql.connector.connect(**DB_CONFIG)
             self.cursor = self.cnx.cursor()
@@ -53,19 +53,15 @@ class WeiboPredictData:
 
     def gen_all_uid(self):
         self.cursor.execute("SELECT DISTINCT uid FROM " + self.table_name)
-        while True:
-            results = self.cursor.fetchmany(self.array_size)
-            if not results:
-                break
+        results = self.cursor.fetchall()
+        if results:
             for r in results:
                 yield r
 
     def gen_all(self):
         self.cursor.execute("SELECT * FROM " + self.table_name)
-        while True:
-            results = self.cursor.fetchmany(self.array_size)
-            if not results:
-                break
+        results = self.cursor.fetchall()
+        if results:
             for r in results:
                 yield r
 
