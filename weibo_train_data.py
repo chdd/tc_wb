@@ -58,10 +58,16 @@ class WeiboTrainData:
             for r in results:
                 yield r
 
+    def get_all(self):
+        self.cursor.execute("SELECT * FROM " + self.table_name)
+        return self.cursor.fetchall()
+
     def gen_all(self):
         self.cursor.execute("SELECT * FROM " + self.table_name)
-        results = self.cursor.fetchall()
-        if results:
+        while True:
+            results = self.cursor.fetchmany(self.array_size)
+            if not results:
+                break
             for r in results:
                 yield r
 

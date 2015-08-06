@@ -21,7 +21,8 @@ def get_train_data_features(cur, WeiboData):
         cnt = 0
         cnt_up = 0
         DEBUG = False
-        for line in weibo_data.gen_all():
+        query = weibo_data.get_all()
+        for line in query:
             cnt += 1
             if cnt >= cnt_up:
                 print(cnt)
@@ -48,15 +49,15 @@ def get_train_data_features(cur, WeiboData):
             for tag in tags_idf:
                 tags_dict[tag[0]] = [tag[1], 0]
             for tag in tags_text_rank:
-                if tags_dict.has_key(tag[0]):
+                if tag[0] in tags_dict:
                     tags_dict[tag[0]][1] = tag[1]
                 else:
                     tags_dict[tag[0]] = [0, tag[1]]
             for tag, val in tags_dict.iteritems():
                 try:
                     cur.execute(add_ddl, (line[1], line[2], tag, val[0], val[1]))
-                except mysql.connector.Error as err:
-                    print(err.msg)
+                except mysql.connector.Error as err0:
+                    print(err0.msg)
                     print(tag)
                     break
 
@@ -89,6 +90,7 @@ try:
                    ") ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;")
     cursor.execute("ALTER TABLE `features_tags` ADD INDEX(`mid`);")
     cursor.execute("ALTER TABLE `features_tags` ADD INDEX(`time`);")
+    cursor.execute("ALTER TABLE `features_tags` ADD INDEX(`tag`);")
 
     add_ddl = ("INSERT INTO `features_tags` "
                "(mid, time, tag, confidence1, confidence2) "
