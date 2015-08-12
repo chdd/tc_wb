@@ -3,9 +3,9 @@ __author__ = 'Desmond'
 
 def deviation(predict, real, kind):
     if kind == 'f':
-        t = 5
+        t = 5.0
     else:
-        t = 3
+        t = 3.0
     return abs(predict - real) / (real + t)
 
 
@@ -29,9 +29,9 @@ def count_i(fr, cr, lr):
 
 
 def precision(predict_and_real):
-    numerator = 0
-    denominator = 0
+    numerator = 0.0
+    denominator = 0.0
     for fp, cp, lp, fr, cr, lr in predict_and_real:
         numerator += count_i(fr, cr, lr) * sgn(precision_i(fp, fr, cp, cr, lp, lr) - 0.8)
         denominator += count_i(fr, cr, lr)
-    return numerator / denominator
+    return numerator / denominator * 100
