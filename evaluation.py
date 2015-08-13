@@ -35,3 +35,12 @@ def precision(predict_and_real):
         numerator += count_i(fr, cr, lr) * sgn(precision_i(fp, fr, cp, cr, lp, lr) - 0.8)
         denominator += count_i(fr, cr, lr)
     return numerator / denominator * 100
+
+
+def precision_rl(fp, cp, lp, real):
+    numerator = 0.0
+    denominator = 0.0
+    for fr, cr, lr in real:
+        numerator += count_i(fr, cr, lr) * sgn(precision_i(fp, fr, cp, cr, lp, lr) - 0.8)
+        denominator += count_i(fr, cr, lr)
+    return numerator / denominator
