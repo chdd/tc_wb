@@ -11,68 +11,53 @@ from generate_result import generate_result
 from evaluation import precision_rl
 
 
-def median(my_list):
-    sorts = sorted(my_list)
-    length = len(sorts)
-    # print length
-    if not length % 2:
-        return (sorts[length / 2] + sorts[length / 2 - 1]) / 2
-    return sorts[length / 2]
+def precision_factory(idx, fp, cp, lp, r_list):
+    def precision_inner0(p):
+        return precision_rl(p, cp, lp, r_list)
+
+    def precision_inner1(p):
+        return precision_rl(fp, p, lp, r_list)
+
+    def precision_inner2(p):
+        return precision_rl(fp, cp, p, r_list)
+
+    precision_inner = [precision_inner0, precision_inner1, precision_inner2]
+    return precision_inner[idx]
 
 
-def search(idx, down, new_p, r_list):
-    last_precision = 0
-    while True:
-        if down:
-            new_p[idx] -= 1
-        else:
-            new_p[idx] += 1
-        temp_precision = precision_rl(new_p[0], new_p[1], new_p[2], r_list)
-        if temp_precision > last_precision:
-            last_precision = temp_precision
-        else:
-            if down:
-                new_p[idx] += 1
-            else:
-                new_p[idx] -= 1
-            break
-    return new_p[idx], last_precision
-
-
-def search_two_sides(idx, fp, cp, lp, r_list, init_precision):
+def search(idx, fp, cp, lp, m, r_list):
     new_p = [fp, cp, lp]
-    dp, dp_precision = search(idx, True, new_p, r_list)
-    up, up_precision = search(idx, False, new_p, r_list)
-    if dp_precision > init_precision or up_precision > init_precision:
-        if dp_precision > up_precision:
-            return dp, dp_precision
-        else:
-            return up, up_precision
-    return new_p[idx], init_precision
+    precision = precision_factory(idx, fp, cp, lp, r_list)
+    large_precision = 0
+    for i in range(0, m[idx] + 1):
+        temp_precision = precision(i)
+        if temp_precision > large_precision:
+            large_precision = temp_precision
+            new_p[idx] = i
+    return new_p[idx], large_precision
 
 
 def max_precision(r_list):
-    fr_list, cr_list, lr_list = [], [], []
-    N = len(r_list)
+    fp, cp, lp = 0, 0, 0
+    m = [0, 0, 0]
     for i in r_list:
-        fr_list.append(i[0])
-        cr_list.append(i[1])
-        lr_list.append(i[2])
-    # fp, cp, lp = median(fr_list), median(cr_list), median(lr_list
-    fp, cp, lp = sum(fr_list) / N, sum(cr_list) / N, sum(lr_list) / N
-
+        if i[0] > m[0]:
+            m[0] = i[0]
+        if i[1] > m[1]:
+            m[1] = i[1]
+        if i[2] > m[2]:
+            m[2] = i[2]
     if len(r_list) == 1:
         return fp, cp, lp
 
     init_precision = precision_rl(fp, cp, lp, r_list)
     # print '{:.4f}  '.format(init_precision),
-    fp, init_precision = search_two_sides(0, fp, cp, lp, r_list, init_precision)
+    fp, init_precision = search(0, fp, cp, lp, m, r_list)
     # print '{:.4f}  '.format(init_precision),
-    cp, init_precision = search_two_sides(1, fp, cp, lp, r_list, init_precision)
+    cp, init_precision = search(1, fp, cp, lp, m, r_list)
     # print '{:.4f}  '.format(init_precision),
-    lp, init_precision = search_two_sides(2, fp, cp, lp, r_list, init_precision)
+    lp, init_precision = search(2, fp, cp, lp, m, r_list)
     # print '{:.4f}  '.format(init_precision),
-    #
     # print
 
     return fp, cp, lp
